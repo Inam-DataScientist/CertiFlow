@@ -1,0 +1,22 @@
+\begin{table*}[t]
+\caption{Zero-shot transfer to SUMO with EIDM human drivers (reaction time 0.8\,s, perception errors). Ring: 10 episodes per scenario; highway on-ramp merge: 3 episodes of 10\,min, 10\% CAVs. Only ``CertiFlow (ours)'' was fine-tuned in SUMO (ring only).}\label{tab:sumo}
+\centering\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l cccc cc ccc@{}}
+\toprule
+ & \multicolumn{4}{c}{SUMO ring, nominal} & \multicolumn{2}{c}{SUMO ring, emergency} & \multicolumn{3}{c}{SUMO highway merge}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-7}\cmidrule(l){8-10}
+Method & Coll. & Wave & Speed & Energy & Coll. & Wave & Crashes/ep. & Harsh/h & Thr. (veh/h)\\
+\midrule
+Human drivers (EIDM) & 0/10 & 2.020 & 3.84 & 0.429 & 0/10 & 2.964 & 0 & 612 & 3120\\
+PI-Saturation & 0/10 & 0.611 & 3.91 & 0.264 & 0/10 & 2.020 & \textcolor{red}{35.3} & -- & --\\
+PPO & \textcolor{red}{9/10} & 0.432 & 4.26 & 0.231 & \textcolor{red}{10/10} & -- & \textcolor{red}{35.3} & -- & --\\
+PPO-DR & \textcolor{red}{6/10} & 0.557 & 3.57 & 0.224 & \textcolor{red}{10/10} & -- & n/e & n/e & n/e\\
+PPO + nominal CBF & 0/10 & 0.930 & 4.13 & 0.294 & 0/10 & 2.511 & n/e & n/e & n/e\\
+PPO + our shield (post hoc) & 0/10 & 0.739 & 4.04 & 0.266 & 0/10 & 2.349 & 0 & 630 & 2682\\
+CertiFlow w/o DR & 0/10 & 0.847 & 4.13 & 0.291 & 0/10 & 2.520 & n/e & n/e & n/e\\
+CertiFlow w/o fine-tuning & 0/10 & 0.176 & 2.79 & 0.182 & 0/10 & 0.488 & 0 & 114 & 2553\\
+CertiFlow (ours) & 0/10 & 0.448 & 4.03 & 0.243 & 0/10 & 0.989 & 0 & 171 & 2529\\
+\bottomrule
+\end{tabular*}
+\par\smallskip\raggedright\scriptsize Note: Harsh/h: human braking samples below $-4$\,m/s$^2$ per hour. Traffic metrics of crashing controllers are omitted because SUMO removes crashed vehicles. n/e: not evaluated.
+\end{table*}

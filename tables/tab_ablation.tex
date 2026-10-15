@@ -1,0 +1,23 @@
+\begin{table*}[t]
+\caption{Ablation study (ring road, 2 CAVs; 60 episodes per scenario). Speed in S1; wave amplitude, STL satisfaction and intervention rate under distribution shift (S2); wave amplitude under emergency braking (S3).}\label{tab:ablation}
+\centering\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l cccccc@{}}
+\toprule
+Configuration & Coll. (S1--S3) & Speed S1 (m/s) & Wave S2 (m/s) & $\varphi_{\mathrm{all}}$ S2 & Wave S3 (m/s) & Interv. S2\\
+\midrule
+Full model (CertiFlow) & 0/180 & 4.81 & 0.212 & 0.82 & 1.084 & 0.067\\
+\multicolumn{7}{@{}l}{\textit{Training-time ablations}}\\
+(i) w/o SUMO fine-tuning & 0/180 & 3.79 & 0.223 & \underline{0.90} & \textbf{0.476} & 0.053\\
+(ii) w/o domain randomisation$^{a}$ & 0/180 & 4.79 & 0.702 & 0.47 & 2.354 & 0.196\\
+(iii) (ii) + w/o STL reward$^{a}$ & 0/180 & 4.71 & 0.656 & 0.58 & 2.430 & 0.151\\
+(iv) (ii) + w/o cooperative term$^{a}$ & 0/180 & 4.79 & 0.770 & 0.52 & 2.533 & 0.201\\
+(v) (ii) + w/o ACI$^{a}$ & 0/180 & 4.80 & 0.565 & 0.80 & 2.298 & 0.146\\
+\multicolumn{7}{@{}l}{\textit{Test-time ablations of the full model}}\\
+(vi) w/o shield & \textcolor{red}{110/180} & 4.82 & 0.201 & 0.27 & -- & --\\
+(vii) w/o conformal bound (nominal CBF) & 0/180 & \textbf{4.81} & \textbf{0.206} & \textbf{0.98} & \underline{1.074} & \textbf{0.040}\\
+(viii) w/o cooperative term & 0/180 & 4.81 & 0.212 & 0.82 & 1.084 & 0.066\\
+(ix) w/o ACI (static conformal) & 0/180 & \underline{4.81} & \underline{0.206} & \textbf{0.98} & 1.080 & \underline{0.042}\\
+\bottomrule
+\end{tabular*}
+\par\smallskip\raggedright\scriptsize Note: Bold and underlined values are the best and second-best among collision-free configurations. $^{a}$Trained without domain randomisation and without SUMO fine-tuning (i.e., on the nominal human model only).
+\end{table*}
