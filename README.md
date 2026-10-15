@@ -3,10 +3,10 @@
 CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent PPO policy to dissolve stop-and-go waves in human-driven traffic. Three layers of assurance are built in:
 
 1. **STL specifications.** Requirements are written once in Signal Temporal Logic. They define the reward through their quantitative robustness and are checked on test episodes with exact Clopper–Pearson bounds.
-2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Human accelerations are bounded by adaptive conformal prediction, and the safe action set is an interval that is computed exactly by bisection.
+2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Adaptive conformal prediction bounds human accelerations, and the safe action set is an interval computed exactly by bisection.
 3. **Collective-stability certificate.** The spectral radius of the linearised closed-loop traffic map certifies that the shielded traffic system is locally exponentially stable.
 
-The implementation is written in Python with no deep-learning framework dependency with SUMO experiments Eclipse SUMO.
+The implementation is written in Python with no deep-learning framework dependency, with SUMO experiments using Eclipse SUMO.
 
 <p align="center">
   <img src="figures/fig_spacetime.png" width="95%"><br>
@@ -79,7 +79,7 @@ S2-shift       off          14/20       0.200         4.87    0.000
 S3-emergency   on            0/20       1.104         3.57    0.131
 S3-emergency   off          20/20          --           --    0.000
 
-spectral radius, human-only ring : 1.0108  (unstable)
+spectral radius, human-only ring: 1.0108  (unstable)
 spectral radius, CertiFlow       : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
 ```
 
@@ -208,17 +208,6 @@ The `results/*.csv` files contain one row per test episode. The columns are:
 | Fine-tuning iterations | 80 | Bisection steps | 25 |
 | Parallel rings / rollout | 16 / 128 | Learning rate | 3 × 10⁻⁴ |
 
-## Citation
-
-```bibtex
-@article{ullah2026certiflow,
-  title   = {CertiFlow: Certified multi-agent reinforcement learning for safe and stable mixed-autonomy traffic},
-  author  = {Ullah, Inam and Wang, Keming and Huang, Xiaowei},
-  journal = {Expert Systems with Applications},
-  note    = {Submitted},
-  year    = {2026}
-}
-```
 
 ## License
 
