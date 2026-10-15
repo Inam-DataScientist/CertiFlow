@@ -205,8 +205,3 @@ The `results/*.csv` files contain one row per test episode. The columns are:
 | PPO iterations | 300 | ACI rate η | 0.005 |
 | Fine-tuning iterations | 80 | Bisection steps | 25 |
 | Parallel rings / rollout | 16 / 128 | Learning rate | 3 × 10⁻⁴ |
-
-
-## License
-
-Released under the MIT License (see `LICENSE`).
