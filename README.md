@@ -1,16 +1,12 @@
 # CertiFlow: Certified multi-agent reinforcement learning for safe and stable mixed-autonomy traffic
 
-This repository contains the code, trained policies and raw results for the paper
-
->  *CertiFlow: Certified multi-agent reinforcement learning for safe and stable mixed-autonomy traffic.* Submitted to *Expert Systems with Applications*.
-
 CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent PPO policy to dissolve stop-and-go waves in human-driven traffic. Three layers of assurance are built in:
 
 1. **STL specifications.** Requirements are written once in Signal Temporal Logic. They define the reward through their quantitative robustness and are checked on test episodes with exact Clopper–Pearson bounds.
 2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Human accelerations are bounded by adaptive conformal prediction, and the safe action set is an interval that is computed exactly by bisection.
 3. **Collective-stability certificate.** The spectral radius of the linearised closed-loop traffic map certifies that the shielded traffic system is locally exponentially stable.
 
-The implementation is written in NumPy and has no deep-learning framework dependency. The SUMO experiments additionally need Eclipse SUMO.
+The implementation is written in Python with no deep-learning framework dependency with SUMO experiments Eclipse SUMO.
 
 <p align="center">
   <img src="figures/fig_spacetime.png" width="95%"><br>
