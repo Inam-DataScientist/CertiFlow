@@ -80,7 +80,7 @@ S3-emergency   on            0/20       1.104         3.57    0.131
 S3-emergency   off          20/20          --           --    0.000
 
 spectral radius, human-only ring: 1.0108  (unstable)
-spectral radius, CertiFlow       : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
+spectral radius, CertiFlow      : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
 ```
 
 To regenerate every table and figure from the stored results (about one minute):
@@ -89,11 +89,9 @@ To regenerate every table and figure from the stored results (about one minute):
 python make_tables.py && python make_figures.py && python make_thumbnails.py
 ```
 
-## Reproducing the paper
+## Reproducing
 
-`run_all.sh` runs the complete pipeline in the order below. If SUMO is not available, the script skips the SUMO steps and keeps the stored SUMO results. All evaluations are deterministic given the seeds, so re-running the evaluation scripts with the included policies reproduces the files in `results/` exactly.
-
-**1. Training on the ring** (3–13 min per run on one CPU core)
+**1. Training on the ring** 
 
 ```bash
 for s in 0 1 2; do
