@@ -1,0 +1,8 @@
+{
+ "vectorised_shield_K1_us_per_call": 955.1627565000445,
+ "vectorised_shield_K2_us_per_call": 967.3898715000179,
+ "vectorised_shield_K4_us_per_call": 932.4177104999764,
+ "vectorised_shield_K8_us_per_call": 883.4319805000631,
+ "scalar_shield_us_per_cav_step": 111.79168759999811,
+ "policy_us_per_cav_decision": 23.803448399985427
+}
