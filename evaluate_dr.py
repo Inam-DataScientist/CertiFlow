@@ -1,28 +1,15 @@
-"""Evaluate the domain-randomised (DR) and SUMO fine-tuned (DR-FT) policies.
-
-Usage:  python evaluate_dr.py
-Expects runs/{PPO-DR,CertiFlow-DR,CertiFlow-DR-FT}_s{0,1,2}/policy.pkl
-Outputs results/episodes_dr_numpy.csv   scenarios S1-S3
-        results/episodes_s4_ft.csv      penetration sweep (1-4 CAVs) of the final policy
-        results/certificates_dr.json    spectral certificates (2 CAVs; 1, 3, 4 CAVs for the final policy)
-        results/traces_S3.npz           adds the S3 trajectory of the final policy (run evaluate.py first)
-"""
 from __future__ import annotations
-
 import argparse, json, os
 import numpy as np
 import pandas as pd
-
 from evaluate import run, load_agent, SCENARIOS
 from certiflow.env import EnvConfig
 from certiflow.shield import calibrate_scores
 from certiflow.methods import make_cfg, make_shield
 from certiflow.certify import spectral_certificate
 
-# policy weights -> method whose configuration and shield are used at test time
 DR_METHODS = {"PPO-DR": "PPO", "CertiFlow-DR": "CertiFlow", "CertiFlow-DR-FT": "CertiFlow"}
 FINAL = "CertiFlow-DR-FT"
-
 
 def to_json(d):
     return {k: (np.abs(v).tolist() if isinstance(v, np.ndarray) else v) for k, v in d.items()}
