@@ -62,7 +62,6 @@ def _window(r, a, b, op, empty):
     B, T = r.shape
     b = min(b, T - 1) if b is not None else T - 1
     out = np.full((B, T), empty, dtype=float)
-    # doubling trick: sliding-window min/max in O(T log W)
     W = b - a + 1
     if W <= 0:
         return out
@@ -99,14 +98,6 @@ class Eventually(Formula):
 
 def traffic_specs(dt: float, d_min=1.0, ttc_min=1.5, sigma_star=0.75, t_settle=60.0, t_hold=20.0,
                   harsh=-4.0):
-    """Return a dict of named STL specifications over trajectory signals.
-
-    Signals expected in `sig` (each (B, T)):
-      gap_min   : min gap over ALL vehicles at t        [m]
-      ttc_marg  : min_i (gap_i - ttc_min * max(0, v_i - v_lead_i)) [m]
-      std_v     : std of speeds over all vehicles at t  [m/s]
-      a_cav_min : most negative CAV acceleration at t   [m/s^2]
-    """
     n_settle, n_hold = int(t_settle / dt), int(t_hold / dt)
     safe = Always(Pred(lambda s: s["gap_min"] - d_min, "gap>=d_min"))
     ttc = Always(Pred(lambda s: s["ttc_marg"], f"TTC>={ttc_min}s"))
@@ -120,7 +111,7 @@ def traffic_specs(dt: float, d_min=1.0, ttc_min=1.5, sigma_star=0.75, t_settle=6
 def signals_from_recording(x, v, a, env, ttc_min=1.5):
     """Build STL signals from env.recording() arrays of shape (T, E, N) -> dict of (E, T)."""
     L, ell, lead = env.L[None, :, None], env.cfg.veh_length, env.lead
-    gap = np.mod(x[:, :, lead] - x, L) - ell                           # (T,E,N)
+    gap = np.mod(x[:, :, lead] - x, L) - ell                           
     closing = np.maximum(0.0, v - v[:, :, lead])
     sig = {
         "gap_min": gap.min(axis=2).T,
