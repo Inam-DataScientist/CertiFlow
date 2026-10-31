@@ -1,11 +1,4 @@
-"""Evaluate every method on S1-S3 with the full metric set (incl. minimum TTC and CAV jerk), plus the
-test-time ablations of the final policy (CertiFlow-DR-FT).  Evaluation seeds are those of evaluate.py.
-
-Usage:  python evaluate_main.py
-Output: results/episodes_main.csv  (used for Tables 6, 7, 10 and Fig. 8)
-"""
 from __future__ import annotations
-
 import pandas as pd
 from evaluate import run, load_agent, SCENARIOS
 from certiflow.env import EnvConfig
@@ -14,7 +7,6 @@ from certiflow.methods import make_cfg, make_shield
 from certiflow.baselines import HumanIDM, PISaturation
 
 SEEDS = [0, 1, 2]
-# label -> (policy weights, config/shield method)
 LEARNED = {
     "PPO": ("PPO", "PPO"), "PPO-DR": ("PPO-DR", "PPO"), "PPO+CBF": ("PPO+CBF", "PPO+CBF"),
     "PPO+CF-shield (post-hoc)": ("PPO", "CertiFlow"),
@@ -30,9 +22,7 @@ TEST_ABL = {
     "Ours w/o ACI": dict(adaptive=False),
 }
 
-
 import argparse
-
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--n_envs', type=int, default=100); N = ap.parse_args().n_envs
     scores = calibrate_scores(EnvConfig())
