@@ -51,7 +51,6 @@ def runtime():
         for _ in range(n):
             sh.filter(env, a)
         res[f"vectorised_shield_K{K}_us_per_call"] = 1e6 * (time.perf_counter() - t0) / n
-    # per-CAV scalar shield (as deployed in SUMO, one call per CAV)
     shs = S.Shield(lo, up)
     n = 5000; t0 = time.perf_counter()
     for i in range(n):
@@ -86,7 +85,7 @@ def phase():
                     env.step(a[..., 0] * ag.act_scale)
                 x, v, _ = env.recording()
                 i = env.cav_idx; Lead = env.lead[i]
-                gap = np.mod(x[:, :, Lead] - x[:, :, i], env.L[None, :, None]) - 5.0      # (T,E,K)
+                gap = np.mod(x[:, :, Lead] - x[:, :, i], env.L[None, :, None]) - 5.0      
                 dv = v[:, :, i] - v[:, :, Lead]
                 hb = gap - 2.0 - 0.3 * v[:, :, i] - (v[:, :, i] ** 2 - v[:, :, Lead] ** 2) / 14.0
                 S_.append(gap[::5].ravel()); DV.append(dv[::5].ravel()); V.append(v[:, :, i][::5].ravel())
