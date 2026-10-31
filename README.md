@@ -11,7 +11,7 @@ CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent 
 The implementation is in Python. The SUMO experiments additionally need Eclipse SUMO.
 
 <p align="center">
-  <img src="figures/fig_spacetime.pdf" width="95%"><br>
+  <img src="figures/fig_spacetime.png" width="95%"><br>
   <em>Space-time diagrams under emergency braking
 </p>
 
@@ -80,7 +80,7 @@ S3-emergency   on            0/20       1.104         3.57    0.131
 S3-emergency   off          20/20          --           --    0.000
 
 spectral radius, human-only ring: 1.0108  (unstable)
-spectral radius, CertiFlow       : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
+spectral radius, CertiFlow      : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
 ```
 
 
