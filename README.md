@@ -111,7 +111,6 @@ for s in 0 1 2; do python sumo_train.py --init CertiFlow-DR --seed $s; done   # 
 python evaluate.py          # results/episodes.csv, summary.csv, certificates.json, traces_S3.npz
 python evaluate_dr.py       # results/episodes_dr_numpy.csv, episodes_s4_ft.csv, certificates_dr.json
 python evaluate_main.py     # results/episodes_main.csv (100 episodes per seed and scenario)
-python stats_power.py       # tables/tab_stats.tex, figures/fig_power.pdf, results/stats_power.json
 python exp_sweeps.py        # results/sweep_uncertainty.csv, sweep_sensitivity.csv
 python exp_extra.py phase   # results/phase.npz
 # requires SUMO:
