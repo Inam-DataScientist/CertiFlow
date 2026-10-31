@@ -59,7 +59,7 @@ python tests.py
 
 `tests.py` runs six checks in about one minute: exact backpropagation, the STL window semantics, Lemma 2 (braking feasibility) on a dense state grid, the shield blocking a reckless policy, the instability of the human-only ring (ρ = 1.0108), and the Clopper–Pearson bound.
 
-**SUMO (optional).** This is needed only for `sumo_eval.py`, `sumo_train.py` and part of `exp_extra.py`. The experiments used Eclipse SUMO 1.28. SUMO is found through the `SUMO_HOME` environment variable or the `eclipse-sumo` Python package:
+**SUMO.** This is needed only for `sumo_eval.py`, `sumo_train.py` and part of `exp_extra.py`. The experiments used Eclipse SUMO 1.28. SUMO is found through the `SUMO_HOME` environment variable or the `eclipse-sumo` Python package:
 
 ```bash
 pip install eclipse-sumo traci          # or: export SUMO_HOME=/path/to/sumo
