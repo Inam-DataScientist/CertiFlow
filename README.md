@@ -121,29 +121,6 @@ python sumo_eval.py --scenario highway --episodes 3      # results/sumo_highway_
 python exp_extra.py runtime residuals sumo_traces        # results/runtime.json, residuals.npz, sumo_traces.npz
 ```
 
-**4. Tables and figures**
-
-```bash
-python make_tables.py && python make_figures.py && python make_thumbnails.py
-```
-
-### Where each result comes from
-
-| Figures |  File name | Data |
-| --- | --- | --- |
-| Fig. 2 (insets) | `make_thumbnails.py` | `traces_S3.npz` |
-| Fig. 4 | `make_figures.py learning` | `runs/*/log.csv` |
-| Fig. 5, Fig. 6 | `make_figures.py spacetime timeseries` | `traces_S3.npz` |
-| Fig. 7 | `make_figures.py phase` | `phase.npz` |
-| Table 6, Table 7, Table 10, Fig. 8 | `make_tables.py`, `make_figures.py robustness` | `episodes_main.csv` |
-| Fig. 9 | `make_figures.py overall` | `episodes.csv`, `episodes_dr_numpy.csv`, `episodes_s4_ft.csv` |
-| Fig. 10 | `make_figures.py certificate` | `certificates.json`, `certificates_dr.json` |
-| Fig. 11 | `make_figures.py residuals` | `residuals.npz` |
-| Table 8, Fig. 12, Fig. 13 | `make_tables.py`, `make_figures.py sumo_spacetime sumo` | `sumo_ring_episodes.csv`, `sumo_highway_episodes.csv`, `sumo_traces.npz` |
-| Table 9 | `exp_extra.py runtime` | `runtime.json` |
-| Fig. 14, Fig. 15 | `make_figures.py uncertainty sensitivity` | `sweep_uncertainty.csv`, `sweep_sensitivity.csv` |
-| Fig. 16 | `make_figures.py coverage` | computed from the trained policy |
-
 The values in Table 9 depend on the hardware. The stored `runtime.json` was measured on the workstation described.
 
 ## Method names
