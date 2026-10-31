@@ -1,19 +1,6 @@
-"""Supplementary experiments.
-
-  sumo_traces  : SUMO ring trajectories (Human EIDM, PPO, CertiFlow) -> results/sumo_traces.npz
-  residuals    : predictor-selection residuals (IDM vs persistence) in SUMO ring/highway -> results/residuals.npz
-  runtime      : wall-clock cost of the shield and of the policy -> results/runtime.json
-  phase        : CAV states (gap, closing speed, speed, barrier) with/without shield, S2+S3 -> results/phase.npz
-
-Usage: python exp_extra.py [runtime] [phase] [residuals] [sumo_traces]
-(runtime, residuals and sumo_traces import sumo_eval.py and therefore need SUMO)
-"""
 from __future__ import annotations
-
 import json, os, sys, time
 import numpy as np
-
-
 def sumo_traces():
     import sumo_eval as S
     work = os.path.abspath("sumo_extra"); os.makedirs(work, exist_ok=True)
@@ -33,7 +20,6 @@ def sumo_traces():
             print("trace", m, tag, flush=True)
     np.savez_compressed("results/sumo_traces.npz", **out)
 
-
 def residuals():
     import sumo_eval as S
     work = os.path.abspath("sumo_extra"); os.makedirs(work, exist_ok=True)
@@ -47,7 +33,6 @@ def residuals():
     np.savez_compressed("results/residuals.npz", ring_idm=sub(ring["idm"]), ring_persist=sub(ring["persist"]),
                         hw_idm=sub(hw["idm"]), hw_persist=sub(hw["persist"]), numpy_idm=sub(lo))
     print("residuals saved", flush=True)
-
 
 def runtime():
     from certiflow.env import RingEnv, EnvConfig
@@ -78,7 +63,6 @@ def runtime():
         ag.act(o, deterministic=True)
     res["policy_us_per_cav_decision"] = 1e6 * (time.perf_counter() - t0) / n
     json.dump(res, open("results/runtime.json", "w"), indent=1); print(res, flush=True)
-
 
 def phase():
     """Record every CAV's (gap, closing speed, speed, barrier value) with and without the shield."""
@@ -112,7 +96,6 @@ def phase():
             out[f"{label}|{k}"] = np.concatenate(arr)
         print("phase", label, flush=True)
     np.savez_compressed("results/phase.npz", **out)
-
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or ["runtime", "phase", "residuals", "sumo_traces"]):
