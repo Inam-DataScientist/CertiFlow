@@ -1,15 +1,7 @@
-"""Evaluate all controllers on the test scenarios, verify STL specs, compute certificates.
-
-Usage:  python evaluate.py            (expects runs/<method>_s<seed>/policy.pkl)
-Outputs results/episodes.csv, results/summary.csv, results/certificates.json,
-        results/traces_*.npz (for figures)
-"""
 from __future__ import annotations
-
 import argparse, copy, json, os, pickle
 import numpy as np
 import pandas as pd
-
 from certiflow.env import RingEnv, EnvConfig
 from certiflow.ppo import PPOAgent
 from certiflow.shield import calibrate_scores
@@ -79,7 +71,7 @@ def run(cfg, agent=None, controller=None, shield=None, n_envs=20, seed=1000, kee
     gap = np.mod(x[:, :, env.lead] - x, L) - env.cfg.veh_length
     clo = v - v[:, :, env.lead]
     ttc = np.where(clo > 0.05, np.maximum(gap, 0.0) / np.maximum(clo, 0.05), np.inf)
-    min_ttc = np.minimum(ttc.min(axis=(0, 2)), 60.0)                  # capped at 60 s for averaging
+    min_ttc = np.minimum(ttc.min(axis=(0, 2)), 60.0)                 
     jerk = (np.abs(np.diff(a[:, :, env.cav_idx], axis=0)).mean(axis=(0, 2)) / cfg.dt if env.K
             else np.zeros(n_envs))
     out = pd.DataFrame({
@@ -155,7 +147,6 @@ def main():
                 add(df, "PPO+CF-shield (post-hoc)", scen, seed, 2)
             print("done", scen, seed, flush=True)
 
-    # ---------------- penetration-rate sweep (nominal) ----------------
     for n_cav in [1, 2, 3, 4]:
         for si, seed in enumerate(args.seeds):
             evs = 5000 + 100 * si
@@ -176,7 +167,6 @@ def main():
     ep = pd.concat(rows, ignore_index=True)
     ep.to_csv(os.path.join(args.out, "episodes.csv"), index=False)
 
-    # ---------------- certificates ----------------
     certs["Human (IDM), 0 CAV"] = spectral_certificate(EnvConfig(n_cav=0))
     for m in RL_METHODS:
         for seed in args.seeds:
@@ -196,12 +186,10 @@ def main():
         json.dump({k: {kk: (vv if not isinstance(vv, np.ndarray) else np.abs(vv).tolist())
                        for kk, vv in d.items()} for k, d in certs.items()}, fh, indent=1)
 
-    # ---------------- traces for figures ----------------
     np.savez_compressed(os.path.join(args.out, "traces_S3.npz"),
                         **{f"{m}|{part}": arr for (m, s), tr in traces.items() if tr is not None
                            for part, arr in zip("xva", tr)})
 
-    # ---------------- summary with statistical verification ----------------
     def summ(g):
         n = len(g)
         k_coll = int(g["collision"].sum())
