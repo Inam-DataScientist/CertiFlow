@@ -1,26 +1,7 @@
-"""Zero-shot sim-to-sim transfer of CertiFlow to SUMO (Eclipse SUMO + TraCI).
-
-Policies trained in the NumPy ring are deployed in SUMO, where human drivers follow SUMO's
-Extended IDM (EIDM) with 0.8 s reaction time and perception errors instead of noisy IDM -- a
-deliberate model mismatch.  Before deployment the shield selects its human-acceleration
-predictor (nominal IDM or persistence) on one human-only calibration run and computes the
-conformal quantile on a second, disjoint run (see select_and_calibrate).
-
-Scenarios
-  ring      : Sugiyama ring, 22 vehicles, 260 m (nominal and emergency braking)
-  highway   : 2-lane 3 km freeway with an on-ramp merge at 1.2 km, open boundary,
-              humans change lanes (LC2013), CAVs keep their lane
-
-Usage:  python sumo_eval.py --scenario ring --episodes 10
-        python sumo_eval.py --scenario highway --episodes 3 --methods "..."
-SUMO is located through $SUMO_HOME or the eclipse-sumo Python package.
-"""
 from __future__ import annotations
-
 import argparse, os, pickle, subprocess, sys
 import numpy as np
 import pandas as pd
-
 
 def _sumo_home():
     if os.environ.get("SUMO_HOME"):
@@ -30,7 +11,6 @@ def _sumo_home():
         return sumo.SUMO_HOME
     except ImportError:
         sys.exit("SUMO not found: set SUMO_HOME or install it with `pip install eclipse-sumo traci`")
-
 
 SUMO_HOME = _sumo_home()
 sys.path.insert(0, os.path.join(SUMO_HOME, "tools"))
@@ -47,10 +27,6 @@ B = 7.0          # physical braking limit used by the barrier [m/s^2]
 A_MAX = 3.0
 IDM = EnvConfig().idm
 
-
-# --------------------------------------------------------------------------- #
-# Network / route generation
-# --------------------------------------------------------------------------- #
 VTYPES = """
   <vType id="human" vClass="passenger" length="5" minGap="2" accel="1.0" decel="1.5" emergencyDecel="7"
          tau="1.0" maxSpeed="30" carFollowModel="EIDM" sigmaerror="0.15" sigmagap="0.15" sigmaleader="0.15"
@@ -74,7 +50,6 @@ def build_ring(d, L=260.0):
                     "--geometry.min-radius.fix", "false"], check=True, capture_output=True)
     return f"{d}/ring.net.xml"
 
-
 def build_highway(d):
     open(f"{d}/hw.nod.xml", "w").write(
         '<nodes><node id="n0" x="0" y="0"/><node id="n1" x="1200" y="0"/><node id="n2" x="1400" y="0"/>'
@@ -94,10 +69,6 @@ def build_highway(d):
                     "-o", f"{d}/hw.net.xml"], check=True, capture_output=True)
     return f"{d}/hw.net.xml"
 
-
-# --------------------------------------------------------------------------- #
-# Shield (same barrier, conformal bounds and bisection as certiflow/shield.py)
-# --------------------------------------------------------------------------- #
 class Shield:
     def __init__(self, scores_low, scores_up, d0=2.0, tau=0.3, tau_f=0.3, gamma=0.3, alpha=0.01,
                  conformal=True, cooperative=True, adaptive=True, lr=0.005, predictor="idm"):
@@ -177,7 +148,6 @@ class Shield:
 def idm_hat(v, vl, s):
     return float(idm_accel(np.array(v), np.array(vl), np.array(s), IDM.v0, IDM.T, IDM.a, IDM.b, IDM.s0, IDM.delta))
 
-
 class PISat:
     """Functional PI-with-saturation (Stern et al., 2018), one state per CAV."""
     def __init__(self):
@@ -191,10 +161,6 @@ class PISat:
         vc = beta * (alpha * vt + (1 - alpha) * vl) + (1 - beta) * vc; self.vcmd[cid] = vc
         return float(np.clip((vc - v) / DT, -3, 2))
 
-
-# --------------------------------------------------------------------------- #
-# Ring scenario
-# --------------------------------------------------------------------------- #
 class RingSUMO:
     def __init__(self, workdir, n=22, k=2, seed=0, port=None, label="r"):
         self.n, self.k, self.seed, self.d, self.label = n, k, seed, workdir, label
@@ -262,7 +228,6 @@ def calibrate_sumo_ring(workdir, seconds=300, seed=999):
         d, v = d2, v2
     env.close()
     return {k: np.concatenate(v) for k, v in res.items()}
-
 
 def select_and_calibrate(cal_fn, work, alpha=0.01):
     """Pick the predictor with the tighter two-sided 1-alpha quantile on calibration run A,
@@ -344,7 +309,6 @@ def run_ring_episode(workdir, method, agent=None, shield=None, seed=0, emergency
         trace["cav_idx"] = cav_idx
     return episode_metrics(V, A, G, cav_idx, interv / (T * max(1, len(cav_idx))), infeas)
 
-
 def episode_metrics(V, A, G, cav_idx, interv, infeas):
     lead = np.r_[1:V.shape[1], 0]
     closing = np.maximum(0, V - V[:, lead])
@@ -358,13 +322,11 @@ def episode_metrics(V, A, G, cav_idx, interv, infeas):
             "interv_rate": interv, "infeasible_steps": infeas, **{f"rho_{k}": r for k, r in rob.items()}}
 
 
-# --------------------------------------------------------------------------- #
 def load_agent(method, seed, runs="runs"):
     ag = PPOAgent(10, 3, seed=seed)
     with open(os.path.join(runs, f"{method}_s{seed}", "policy.pkl"), "rb") as fh:
         ag.load_state_dict(pickle.load(fh))
     return ag
-
 
 SHIELD_CFG = {"PPO": None, "PPO+CBF": dict(conformal=False, cooperative=False, adaptive=False),
               "CertiFlow": dict(), "PPO+CF-shield (post-hoc)": dict(),
@@ -373,9 +335,6 @@ WEIGHTS = {"PPO": "PPO", "PPO+CBF": "PPO+CBF", "CertiFlow": "CertiFlow", "PPO+CF
            "PPO-DR": "PPO-DR", "CertiFlow-DR": "CertiFlow-DR", "CertiFlow-DR-FT": "CertiFlow-DR-FT"}
 
 
-# --------------------------------------------------------------------------- #
-# Highway with on-ramp merge
-# --------------------------------------------------------------------------- #
 def hw_routes(d, seed, cav_frac, q_main=3400, q_ramp=700, horizon=900, label="h"):
     """Mainline demand q_main veh/h over 2 lanes (cav_frac of it CAVs), ramp demand q_ramp veh/h."""
     p = os.path.join(d, f"hw_{label}.rou.xml")
@@ -389,7 +348,6 @@ def hw_routes(d, seed, cav_frac, q_main=3400, q_ramp=700, horizon=900, label="h"
     open(p, "w").write(f"<routes>{VTYPES}{flows}</routes>")
     return p
 
-
 def _start_hw(work, routes, seed, label):
     net = os.path.join(work, "hw.net.xml")
     if not os.path.exists(net):
@@ -400,9 +358,7 @@ def _start_hw(work, routes, seed, label):
                  "--lanechange.duration", "2"], label=label)
     return traci.getConnection(label)
 
-
 MINGAP = {"human": 2.0, "cav": 2.0}   # declared minGap (only shapes how OTHER drivers judge gaps)
-
 
 def calibrate_sumo_hw(work, seconds=400, seed=998):
     """Residuals of the nominal IDM predictor for human car-following on the highway.
