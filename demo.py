@@ -1,10 +1,3 @@
-"""Quick check of a trained CertiFlow policy.
-
-Runs the final policy on 20 rings in each test scenario, with and without the shield, and prints
-collisions, wave amplitude, mean speed and shield intervention rate.
-
-Usage:  python demo.py [--seed 0]
-"""
 from __future__ import annotations
 
 import argparse
