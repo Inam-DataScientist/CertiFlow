@@ -8,9 +8,6 @@ class HumanIDM:
         return env._hdv_accel()[:, env.cav_idx]
 
 class PISaturation:
-    The CAV tracks the running average of its own past speed (a proxy for the
-    equilibrium speed), blended with the leader speed when the gap is small.
-    """
     name = "PI-Saturation"
 
     def __init__(self, window_s=38.0, g_l=7.0, g_u=30.0, v_catch=1.0, gamma=2.0, a_lim=(-3.0, 2.0)):
