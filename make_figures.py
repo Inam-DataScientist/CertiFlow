@@ -1,21 +1,3 @@
-"""Figures of the paper generated from the result files -> figures/*.pdf, figures/*.png
-
-  Fig. 4   fig_learning         training curves and safe fine-tuning in SUMO
-  Fig. 5   fig_spacetime        space-time diagrams under emergency braking (S3)
-  Fig. 6   fig_timeseries       speed, acceleration, gap and TTC of the first CAV in S3
-  Fig. 7   fig_phase            safe-set phase portrait with and without the shield
-  Fig. 8   fig_robustness       STL robustness per episode
-  Fig. 9   fig_overall          collision rate and penetration-rate study
-  Fig. 10  fig_certificate      collective-stability certificate
-  Fig. 11  fig_residuals        predictor residuals on SUMO calibration data
-  Fig. 12  fig_sumo_spacetime   space-time diagrams on the SUMO ring
-  Fig. 13  fig_sumo             transfer to SUMO
-  Fig. 14  fig_uncertainty      performance under increasing human-behaviour uncertainty
-  Fig. 15  fig_sensitivity      sensitivity to the shield parameters
-  Fig. 16  fig_coverage         coverage of the human-acceleration bound under shift
-
-Usage:  python make_figures.py [learning spacetime ...]   (default: all)
-"""
 from __future__ import annotations
 
 import glob, json, os, sys
