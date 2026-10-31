@@ -13,8 +13,6 @@ FINAL = "CertiFlow-DR-FT"
 
 def to_json(d):
     return {k: (np.abs(v).tolist() if isinstance(v, np.ndarray) else v) for k, v in d.items()}
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", default="runs")
@@ -37,7 +35,6 @@ def main():
                 rows.append(df)
         print("done", scen, flush=True)
     pd.concat(rows, ignore_index=True).to_csv(os.path.join(args.out, "episodes_dr_numpy.csv"), index=False)
-
     rows = []
     for n_cav in [1, 2, 3, 4]:
         for si, seed in enumerate(args.seeds):
@@ -48,7 +45,6 @@ def main():
             rows.append(df)
         print("done penetration", n_cav, flush=True)
     pd.concat(rows, ignore_index=True).to_csv(os.path.join(args.out, "episodes_s4_ft.csv"), index=False)
-
     certs = {}
     for w, m in DR_METHODS.items():
         for seed in args.seeds:
@@ -65,15 +61,13 @@ def main():
             print("certificate", FINAL, seed, f"K={n_cav}", f"rho={r['rho']:.4f}", flush=True)
     with open(os.path.join(args.out, "certificates_dr.json"), "w") as fh:
         json.dump(certs, fh, indent=1)
-
     path = os.path.join(args.out, "traces_S3.npz")
     traces = dict(np.load(path)) if os.path.exists(path) else {}
     cfg = make_cfg("CertiFlow", EnvConfig(n_cav=2, **SCENARIOS["S3-emergency"]))
     _, tr = run(cfg, agent=load_agent(FINAL, args.seeds[0], args.runs, required=True),
-                shield=make_shield("CertiFlow", cfg, scores), n_envs=20, seed=1000, keep_trace=True)  # trace batch of the paper figures
+                shield=make_shield("CertiFlow", cfg, scores), n_envs=20, seed=1000, keep_trace=True) 
     traces.update({f"{FINAL}|{part}": arr for part, arr in zip("xva", tr)})
     np.savez_compressed(path, **traces)
-
 
 if __name__ == "__main__":
     main()
