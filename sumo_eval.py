@@ -14,16 +14,16 @@ def _sumo_home():
 
 SUMO_HOME = _sumo_home()
 sys.path.insert(0, os.path.join(SUMO_HOME, "tools"))
-import traci  # noqa: E402
+import traci  
 
-from certiflow.env import EnvConfig, idm_accel  # noqa: E402
-from certiflow.ppo import PPOAgent  # noqa: E402
-from certiflow.stl import traffic_specs  # noqa: E402
+from certiflow.env import EnvConfig, idm_accel 
+from certiflow.ppo import PPOAgent  
+from certiflow.stl import traffic_specs  
 
 SUMO_BIN = os.path.join(SUMO_HOME, "bin", "sumo")
 NETCONVERT = os.path.join(SUMO_HOME, "bin", "netconvert")
 DT = 0.1
-B = 7.0          # physical braking limit used by the barrier [m/s^2]
+B = 7.0          
 A_MAX = 3.0
 IDM = EnvConfig().idm
 
@@ -103,12 +103,8 @@ class Shield:
         return lo
 
     def filter(self, cid, a_des, s, v, vl, al_hat, lead_is_cav, sf=None, vf=None, af_hat=None, extra=()):
-        """Returns (a_exec, infeasible, predicted bounds for the ACI update).
-
-        extra: further leader candidates (s, vl, al_hat) -- vehicles cutting into the lane.
-        They are bounded worst-case (al = -B): their future in our lane has no calibration data."""
         al = self.alpha_l.setdefault(cid, self.alpha); af = self.alpha_f.setdefault(cid, self.alpha)
-        if s is None:                                    # free road: no leader in range
+        if s is None:                                    
             al_lb = None; a_up = A_MAX
         else:
             q_l = self.q(self.sl, al if self.adaptive else self.alpha) if self.conformal else 0.0
@@ -144,12 +140,10 @@ class Shield:
             err = float(af_true > af_ub + 1e-9)
             self.alpha_f[cid] = float(np.clip(self.alpha_f[cid] + self.lr * (self.alpha - err), -0.05, self.alpha))
 
-
 def idm_hat(v, vl, s):
     return float(idm_accel(np.array(v), np.array(vl), np.array(s), IDM.v0, IDM.T, IDM.a, IDM.b, IDM.s0, IDM.delta))
 
 class PISat:
-    """Functional PI-with-saturation (Stern et al., 2018), one state per CAV."""
     def __init__(self):
         self.hist, self.vcmd = {}, {}
 
@@ -179,7 +173,6 @@ class RingSUMO:
             edge = "top" if pos < 130 else "bot"
             p = pos if pos < 130 else pos - 130
             t = "cav" if f"v{i}" in self.cav_ids else "human"
-            # CAVs drive as humans during warm-up: they get the human type and are switched later
             veh.append(f'<vehicle id="v{i}" type="human" depart="0" departPos="{p:.2f}" departSpeed="0">'
                        f'<route edges="{loop if edge=="top" else "bot " + loop}"/></vehicle>')
         open(routes, "w").write(f"<routes>{VTYPES}{''.join(veh)}</routes>")
@@ -197,17 +190,12 @@ class RingSUMO:
         d = np.array([c.vehicle.getDistance(v) for v in self.ids])
         v = np.array([c.vehicle.getSpeed(i) for i in self.ids])
         return d, v
-
     def gaps(self, d):
-        # initial offsets: vehicle i departs at i*spacing; odometer starts at 0
         pos = d + np.arange(self.n) * (260.0 / self.n)
         lead = np.r_[1:self.n, 0]
         return np.mod(pos[lead] - pos, self.Lring) - 5.0, pos
-
     def close(self):
         self.c.close()
-
-
 def calibrate_sumo_ring(workdir, seconds=300, seed=999):
     env = RingSUMO(workdir, k=0, seed=seed, label="cal"); env.start()
     for _ in range(int(60 / DT)):
@@ -228,20 +216,16 @@ def calibrate_sumo_ring(workdir, seconds=300, seed=999):
         d, v = d2, v2
     env.close()
     return {k: np.concatenate(v) for k, v in res.items()}
-
 def select_and_calibrate(cal_fn, work, alpha=0.01):
-    """Pick the predictor with the tighter two-sided 1-alpha quantile on calibration run A,
-    then calibrate its scores on a DISJOINT run B (keeps split-conformal validity)."""
     A = cal_fn(work, seed=901); Bc = cal_fn(work, seed=902)
     width = {k: np.quantile(r, 1 - alpha) + np.quantile(-r, 1 - alpha) for k, r in A.items()}
     best = min(width, key=width.get)
     r = Bc[best]
     return best, r, -r, width
 
-
 def run_ring_episode(workdir, method, agent=None, shield=None, seed=0, emergency=False, label="r", trace=None):
     env = RingSUMO(workdir, k=2, seed=seed, label=label); env.start(); c = env.c
-    for _ in range(int(60 / DT)):                     # human-only warm-up (waves form)
+    for _ in range(int(60 / DT)):                    
         c.simulationStep()
     cav_idx = [int(x[1:]) for x in env.cav_ids]
     controlled = method != "Human"
@@ -268,7 +252,7 @@ def run_ring_episode(workdir, method, agent=None, shield=None, seed=0, emergency
                     c.vehicle.setSpeedMode(vid, 31); c.vehicle.setSpeed(vid, -1)
         bounds = {}
         if controlled:
-            if t % 5 == 0 and agent is not None:      # policy at 2 Hz, held for 0.5 s
+            if t % 5 == 0 and agent is not None:      
                 obs = []
                 for i in cav_idx:
                     L1, F1 = lead_of(i), foll_of(i); L2 = lead_of(L1)
@@ -321,7 +305,6 @@ def episode_metrics(V, A, G, cav_idx, interv, infeas):
             "mean_v": float(V.mean()), "energy_MJkm": float(np.maximum(P, 0).sum() * DT / max(V.sum() * DT, 1) * 1e-3),
             "interv_rate": interv, "infeasible_steps": infeas, **{f"rho_{k}": r for k, r in rob.items()}}
 
-
 def load_agent(method, seed, runs="runs"):
     ag = PPOAgent(10, 3, seed=seed)
     with open(os.path.join(runs, f"{method}_s{seed}", "policy.pkl"), "rb") as fh:
@@ -333,7 +316,6 @@ SHIELD_CFG = {"PPO": None, "PPO+CBF": dict(conformal=False, cooperative=False, a
               "PPO-DR": None, "CertiFlow-DR": dict(), "CertiFlow-DR-FT": dict()}
 WEIGHTS = {"PPO": "PPO", "PPO+CBF": "PPO+CBF", "CertiFlow": "CertiFlow", "PPO+CF-shield (post-hoc)": "PPO",
            "PPO-DR": "PPO-DR", "CertiFlow-DR": "CertiFlow-DR", "CertiFlow-DR-FT": "CertiFlow-DR-FT"}
-
 
 def hw_routes(d, seed, cav_frac, q_main=3400, q_ramp=700, horizon=900, label="h"):
     """Mainline demand q_main veh/h over 2 lanes (cav_frac of it CAVs), ramp demand q_ramp veh/h."""
@@ -358,15 +340,9 @@ def _start_hw(work, routes, seed, label):
                  "--lanechange.duration", "2"], label=label)
     return traci.getConnection(label)
 
-MINGAP = {"human": 2.0, "cav": 2.0}   # declared minGap (only shapes how OTHER drivers judge gaps)
+MINGAP = {"human": 2.0, "cav": 2.0}   
 
 def calibrate_sumo_hw(work, seconds=400, seed=998):
-    """Residuals of the nominal IDM predictor for human car-following on the highway.
-
-    The prediction is made BEFORE a step and compared with the acceleration realised
-    DURING that step; pairs whose leader changed in the step (lane changes) are excluded,
-    since the shield treats a new leader through the barrier state itself.
-    """
     c = _start_hw(work, hw_routes(work, seed, 0.0, label=f"cal{seed}"), seed, f"hcal{seed}")
     res = {"idm": [], "persist": []}
     for t in range(int(seconds / DT)):
@@ -389,14 +365,13 @@ def calibrate_sumo_hw(work, seconds=400, seed=998):
                 a = c.vehicle.getAcceleration(vid)
                 res["idm"].append(a_idm - a); res["persist"].append(a_per - a)
     c.close()
-    return {k: np.array(v) for k, v in res.items()}   # score_low = r, score_up = -r
-
+    return {k: np.array(v) for k, v in res.items()}   
 
 def run_hw_episode(work, method, agent=None, shield=None, seed=0, cav_frac=0.10, horizon=900, warm=300,
                    label="h"):
     controlled = method != "Human"
     routes = hw_routes(work, seed, cav_frac, horizon=horizon, label=label)
-    if not controlled:   # CAV flow exists but its vehicles drive as humans
+    if not controlled:   
         txt = open(routes).read().replace('type="cav"', 'type="human"'); open(routes, "w").write(txt)
     c = _start_hw(work, routes, seed, label)
     pi = PISat()
@@ -433,7 +408,7 @@ def run_hw_episode(work, method, agent=None, shield=None, seed=0, cav_frac=0.10,
                 lid, g, vl, vl2, gl, lead_cav = None, 200.0, v, v, 200.0, False
             extra = []
             if shield is not None:
-                for mode, sig in ((2, 2), (3, 1)):       # right-lane leaders signalling left; left-lane signalling right
+                for mode, sig in ((2, 2), (3, 1)):       
                     for nid, nd in c.vehicle.getNeighbors(cid, mode):
                         if nd + MINGAP["cav"] < 60.0 and (c.vehicle.getSignals(nid) & sig):
                             extra.append((max(nd + MINGAP["cav"], 0.0), c.vehicle.getSpeed(nid), 0.0))
@@ -468,7 +443,6 @@ def run_hw_episode(work, method, agent=None, shield=None, seed=0, cav_frac=0.10,
             acts[cid] = a_ex
             c.vehicle.setSpeed(cid, max(0.0, v + a_ex * DT))
         c.simulationStep()
-        # post-step bookkeeping
         if tt >= warm:
             n_coll += c.simulation.getCollidingVehiclesNumber()
             for col in c.simulation.getCollisions():
@@ -518,11 +492,8 @@ def run_hw_episode(work, method, agent=None, shield=None, seed=0, cav_frac=0.10,
             "throughput_vph": arrived / T_eval, "mean_v": float(np.mean(sp_all)),
             "upstream_speed_std": float(sp_up.std()), "upstream_mean_speed": float(sp_up.mean()),
             "energy_MJkm": energy / max(dist, 1) * 1e-3,
-            # vehicle-samples (taken every 0.5 s) with acceleration below -4 m/s^2, per evaluated hour
             "harsh_brake_human_per_h": harsh_h / T_eval, "harsh_brake_cav_per_h": harsh_c / T_eval, "ttc_viol_frac": ttc_viol / max(n_ttc, 1),
             "interv_rate": interv / max(n_ctrl, 1), "infeasible_steps": infeas, "a_cav_min": a_cav_min}
-
-
 def main_highway(args):
     work = os.path.abspath(args.work); os.makedirs(work, exist_ok=True)
     pred, lo, up, width = select_and_calibrate(calibrate_sumo_hw, work)
@@ -549,8 +520,6 @@ def main_highway(args):
 
 
 RING_METHODS = ["PPO", "PPO+CBF", "PPO+CF-shield (post-hoc)", "CertiFlow", "PPO-DR", "CertiFlow-DR", "CertiFlow-DR-FT"]
-
-
 def main_ring(args):
     work = os.path.abspath(args.work); os.makedirs(work, exist_ok=True)
     pred, lo, up, width = select_and_calibrate(calibrate_sumo_ring, work)
@@ -576,8 +545,6 @@ def main_ring(args):
                              for r in rows[-(2 + len(RING_METHODS)):]}, flush=True)
             pd.DataFrame(rows).to_csv(os.path.join(args.out, "sumo_ring_episodes.csv"), index=False)
     return pd.DataFrame(rows)
-
-
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--scenario", default="ring")
