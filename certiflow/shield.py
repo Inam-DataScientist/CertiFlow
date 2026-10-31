@@ -1,39 +1,6 @@
-"""Conformal, cooperative discrete-time control-barrier-function (CBF) shield.
-
-Barrier (RSS-type stopping-distance certificate, Vahidi/Ames/Shalev-Shwartz):
-
-    h(s, v, v_l) = s - d0 - tau * v - (v^2 - v_l^2) / (2 b)
-
-h >= 0 means that, even if the leader brakes at the physical limit b from now on,
-the ego can stop behind it with margin d0 after a reaction allowance tau * v.
-
-Discrete-time CBF condition (Agrawal & Sreenath, 2017):
-
-    h(x_{k+1}) >= (1 - gamma) * h(x_k),      0 < gamma <= 1
-
-Only one quantity in x_{k+1} is not under the CAV's control: the leader's
-acceleration over the next step.  For a human leader we predict it with a nominal
-IDM and use a *conformal* lower bound  a_l >= a_hat - q_{1-alpha}  that is valid
-with probability >= 1 - alpha without any distributional assumption (split
-conformal prediction, Vovk et al.; Angelopoulos & Bates).  Under distribution
-shift the level alpha_t is adapted online (adaptive conformal inference,
-Gibbs & Candes, 2021), which keeps long-run miscoverage at alpha.
-
-Because h(x_{k+1}) is monotonically non-increasing in the ego acceleration a,
-the set of safe actions is an interval (-inf, a_up]; we find a_up exactly by
-vectorised bisection -- no QP solver is needed, the filter is O(E*K) per step.
-
-Cooperative term: the shield additionally protects the human FOLLOWER of every
-CAV, whose barrier h_f is non-decreasing in a, giving a lower bound a >= a_lo.
-If a_lo > a_up the ego's own safety takes priority and the step is counted as
-"infeasible" (reported in the experiments).
-"""
 from __future__ import annotations
-
 import numpy as np
 from .env import idm_accel
-
-
 class ConformalCBFShield:
     def __init__(self, cfg, d0=2.0, tau=0.3, tau_f=0.3, gamma=0.3, alpha=0.01,
                  conformal=True, cooperative=True, adaptive=True, aci_lr=0.005,
@@ -50,7 +17,6 @@ class ConformalCBFShield:
         self.alpha_t = None
         self.stats = {"miscov": 0, "n": 0}
 
-    # ------------------------------------------------------------------ #
     def reset(self, ids):
         pass
 
@@ -62,11 +28,9 @@ class ConformalCBFShield:
             self.pred_f = np.zeros((env.E, env.K))
 
     def _quantile(self, scores, alpha_t):
-        """Conformal quantile with finite-sample correction; alpha<=0 -> worst case."""
-        n = len(scores)                                   # scores are pre-sorted
+        n = len(scores)                                  
         k = np.ceil((n + 1) * (1.0 - np.clip(alpha_t, 1e-9, 1.0))).astype(int) - 1
         q = scores[np.clip(k, 0, n - 1)]
-        # level beyond the data (k >= n) or alpha_t <= 0  ->  worst case (no information)
         return np.where((alpha_t <= 0) | (k >= n), np.inf, q)
 
     def barrier(self, s, v, vl, tau):
@@ -79,7 +43,6 @@ class ConformalCBFShield:
         s2 = s + 0.5 * (vl + vl2) * dt - 0.5 * (v + v2) * dt
         return self.barrier(s2, v2, vl2, tau)
 
-    # ------------------------------------------------------------------ #
     def _nominal(self, env, ego, lead):
         p = env.cfg.idm
         g = env.gaps()
@@ -93,7 +56,6 @@ class ConformalCBFShield:
         v = env.v
         s, ve, vl = g[:, i], v[:, i], v[:, L]
 
-        # ---- leader acceleration lower bound (conformal) ----
         a_hat_l = self._nominal(env, L, env.lead[L])
         self.pred_l = a_hat_l
         if self.conformal:
@@ -105,15 +67,12 @@ class ConformalCBFShield:
         lead_is_cav = env.is_cav[L]
         al_lb = np.where(lead_is_cav[None, :], -self.b, al_lb)
         al_lb = np.clip(al_lb, -self.b, env.cfg.a_max_phys)
-
         h0 = self.barrier(s, ve, vl, self.tau)
         rhs = (1.0 - self.gamma) * h0
         amax = env.cfg.a_max_phys
 
         def h_next(a):
             return self._next_h(a, s, ve, vl, al_lb, self.tau)
-
-        # a_up = largest a in [-b, amax] with h' >= rhs   (h' non-increasing in a)
         lo = np.full_like(a_des, -self.b)
         hi = np.full_like(a_des, amax)
         top_ok = h_next(hi) >= rhs
@@ -122,11 +81,10 @@ class ConformalCBFShield:
             ok = h_next(mid) >= rhs
             lo = np.where(ok, mid, lo)
             hi = np.where(ok, hi, mid)
-        a_up = np.where(top_ok, amax, lo)        # if even -b fails, lo stays at -b (max braking)
+        a_up = np.where(top_ok, amax, lo)        
         infeasible = np.zeros_like(a_des)
         a_lo = np.full_like(a_des, -self.b)
 
-        # ---- cooperative constraint for the human follower ----
         if self.cooperative:
             sf, vf = g[:, F], v[:, F]
             a_hat_f = self._nominal(env, F, i)
@@ -141,9 +99,7 @@ class ConformalCBFShield:
             rhs_f = (1.0 - self.gamma) * hf0
 
             def hf_next(a):
-                # the follower is the "ego"; the CAV is its leader, accelerating at a
                 return self._next_h(af_ub, sf, vf, ve, a, self.tau_f)
-            # a_lo = smallest a in [-b, amax] with hf' >= rhs_f   (hf' non-decreasing in a)
             lo2 = np.full_like(a_des, -self.b)
             hi2 = np.full_like(a_des, amax)
             bot_ok = hf_next(lo2) >= rhs_f
@@ -154,11 +110,10 @@ class ConformalCBFShield:
                 lo2 = np.where(ok, lo2, mid)
             a_lo = np.where(bot_ok, -self.b, hi2)
             infeasible = (a_lo > a_up).astype(float)
-            a_lo = np.minimum(a_lo, a_up)          # ego safety has priority
+            a_lo = np.minimum(a_lo, a_up)          
         a_out = np.clip(a_des, a_lo, a_up)
         return a_out, infeasible
 
-    # ------------------------------------------------------------------ #
     def update(self, env, v_before):
         """Adaptive conformal update after observing the realised accelerations."""
         if not (self.conformal and self.adaptive):
@@ -170,7 +125,6 @@ class ConformalCBFShield:
         a_f = (env.v[:, F] - v_before[:, F]) / dt
         q_l = self._quantile(self.scores_low, self.alpha_t)
         q_f = self._quantile(self.scores_up, self.alpha_f)
-        # ignore the v=0 saturation, where the realised accel is clipped upwards (safe side)
         err_l = (a_l < self.pred_l - q_l - 1e-9) & (env.v[:, L] > 0)
         err_f = (a_f > self.pred_f + q_f + 1e-9)
         self.stats["miscov"] += int(err_l.sum()); self.stats["n"] += err_l.size
@@ -180,13 +134,7 @@ class ConformalCBFShield:
         self.alpha_f = np.clip(self.alpha_f, -0.05, self.alpha)
 
 
-def calibrate_scores(cfg, n_envs=16, seconds=200.0, seed=12345):
-    """Collect nonconformity scores of the nominal-IDM predictor on human-only data.
-
-    score_low = a_hat - a_true  (large when the human brakes harder than predicted)
-    score_up  = a_true - a_hat  (large when the human accelerates more than predicted)
-    The calibration traffic uses a different seed (exchangeable but disjoint data).
-    """
+def calibrate_scores(cfg, n_envs=16, seconds=200.0, seed=12345):    
     from .env import RingEnv
     import copy
     c = copy.deepcopy(cfg); c.n_cav = 0; c.seed = seed; c.perturbations = []
