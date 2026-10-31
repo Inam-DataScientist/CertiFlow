@@ -36,9 +36,6 @@ CertiFlow/
 ├── exp_sweeps.py           human-uncertainty and shield-parameter sweeps
 ├── exp_extra.py            runtime, safe-set phase portrait, SUMO residuals and trajectories
 ├── sumo_eval.py            SUMO ring and highway-merge evaluation (TraCI)
-├── make_tables.py          tables 
-├── make_figures.py         figures 
-├── make_thumbnails.py      inset plots 
 ├── demo.py                 quick check of a trained policy
 ├── tests.py                self-checks
 ├── run_all.sh              full reproduction pipeline
@@ -86,11 +83,6 @@ spectral radius, human-only ring : 1.0108  (unstable)
 spectral radius, CertiFlow       : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
 ```
 
-To regenerate every table and figure from the stored results (about one minute):
-
-```bash
-python make_tables.py && python make_figures.py && python make_thumbnails.py
-```
 
 ## Reproducing
 
