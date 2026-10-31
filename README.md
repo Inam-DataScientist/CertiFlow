@@ -4,14 +4,14 @@ This repository contains the code, trained policies and raw results.
 
 CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent PPO policy to dissolve stop-and-go waves in human-driven traffic. Three layers of assurance are built in:
 
-1. **STL specifications.** Requirements are written once in Signal Temporal Logic. They define the reward through their quantitative robustness and are checked on test episodes with exact Clopper–Pearson bounds.
+1. **STL specifications.** Requirements are written once in Signal Temporal Logic. They define the reward quantitatively and are checked on test episodes using exact Clopper–Pearson bounds.
 2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Adaptive conformal prediction bounds human accelerations, and the safe action set is an interval computed exactly by bisection.
 3. **Collective-stability certificate.** The spectral radius of the linearised closed-loop traffic map certifies that the shielded traffic system is locally exponentially stable.
 
 The implementation is in Python. The SUMO experiments additionally need Eclipse SUMO.
 
 <p align="center">
-  <img src="figures/fig_spacetime.png" width="95%"><br>
+  <img src="figures/fig_spacetime.pdf" width="95%"><br>
   <em>Space-time diagrams under emergency braking
 </p>
 
