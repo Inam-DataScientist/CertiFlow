@@ -1,23 +1,9 @@
-"""Safe online adaptation: fine-tune a CertiFlow policy INSIDE SUMO with the shield always on.
-
-E parallel SUMO rings (EIDM humans) form a vectorised environment with the same
-observation, action timing, reward and shield as the NumPy training environment.
-Starting from a policy trained in NumPy, PPO continues training in SUMO; because every
-action passes through the conformal CBF shield, exploration in the new domain is safe.
-
-Usage:  python sumo_train.py --init CertiFlow-DR --seed 0 --iters 80
-Writes  runs/<init>-FT_s<seed>/{policy.pkl, log.csv}
-"""
 from __future__ import annotations
-
 import argparse, csv, os, pickle, time
 import numpy as np
-
 import sumo_eval as S
 
-DT, SUB, HOR = 0.1, 5, 200            # 0.1 s sim step, 2 Hz control, 100 s episodes
-
-
+DT, SUB, HOR = 0.1, 5, 200           
 class SumoRingVec:
     def __init__(self, work, n_envs, shield_fn, seed=0, k=2, w_stl=1.0, w_interv=0.2, v_ref=None):
         self.work, self.E, self.K, self.n = work, n_envs, k, 22
@@ -28,7 +14,6 @@ class SumoRingVec:
         self.envs = [None] * n_envs
         self.ep = 0
 
-    # --------------------------------------------------------------- #
     def _reset_one(self, e):
         if self.envs[e] is not None:
             self.envs[e].close()
@@ -69,7 +54,6 @@ class SumoRingVec:
             f.append([env.v.std() / 2.0, env.v.mean() / 10.0, g.min() / 10.0])
         return np.repeat(np.array(f)[:, None, :], self.K, 1)
 
-    # --------------------------------------------------------------- #
     def step(self, act):
         rew = np.zeros((self.E, self.K)); done = np.zeros(self.E, bool)
         coll = np.zeros(self.E, bool); interv = np.zeros(self.E)
