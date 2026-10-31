@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-# Full reproduction pipeline.  Steps that need SUMO are skipped when SUMO is not available,
-# in which case the stored SUMO policies and results are used.
 set -euo pipefail
 cd "$(dirname "$0")"
 
