@@ -1,4 +1,4 @@
-"""Quick check of a trained CertiFlow policy (about 30 s on one CPU core).
+"""Quick check of a trained CertiFlow policy.
 
 Runs the final policy on 20 rings in each test scenario, with and without the shield, and prints
 collisions, wave amplitude, mean speed and shield intervention rate.
