@@ -1,24 +1,15 @@
-"""Train a parameter-shared PPO policy for the CAVs.
-
-Usage:  python train.py --method CertiFlow --seed 0 --iters 300 [--dr]
-Writes  runs/<method>[-DR]_s<seed>/{policy.pkl, log.csv}
-"""
 from __future__ import annotations
-
 import argparse, csv, os, pickle, time
 import numpy as np
-
 from certiflow.env import RingEnv, EnvConfig
 from certiflow.ppo import PPOAgent
 from certiflow.shield import calibrate_scores
 from certiflow.methods import make_cfg, make_shield
 
-
 def global_feats(env):
     g = env.gaps()
-    f = np.stack([env.v.std(1) / 2.0, env.v.mean(1) / 10.0, g.min(1) / 10.0], -1)   # (E,3)
+    f = np.stack([env.v.std(1) / 2.0, env.v.mean(1) / 10.0, g.min(1) / 10.0], -1)   
     return np.repeat(f[:, None, :], env.K, 1)
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -31,7 +22,6 @@ def main():
     ap.add_argument("--out", default="runs")
     ap.add_argument("--dr", action="store_true", help="domain-randomised human model (reaction delay, perception noise)")
     args = ap.parse_args()
-
     cfg = make_cfg(args.method, EnvConfig(n_cav=args.n_cav, seed=args.seed, dr=args.dr))
     scores = calibrate_scores(EnvConfig(dr=args.dr))  # calibration data disjoint from training seeds
     env = RingEnv(cfg, n_envs=args.n_envs)
@@ -39,7 +29,6 @@ def main():
     agent = PPOAgent(RingEnv.OBS_DIM, 3, seed=args.seed)
     run_dir = os.path.join(args.out, f"{args.method}{'-DR' if args.dr else ''}_s{args.seed}")
     os.makedirs(run_dir, exist_ok=True)
-
     obs = env.reset()
     ep_ret = np.zeros(env.E); ep_rets, ep_coll = [], []
     T, E, K = args.rollout, env.E, env.K
@@ -86,7 +75,6 @@ def main():
                       f"t {time.time()-t0:.0f}s", flush=True)
     with open(os.path.join(run_dir, "policy.pkl"), "wb") as fh:
         pickle.dump(agent.state_dict(), fh)
-
 
 if __name__ == "__main__":
     main()
