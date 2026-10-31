@@ -1,37 +1,14 @@
-"""Design-time certificates for the closed loop.
-
-1. Local asymptotic stability of the *collective* traffic state
-   ------------------------------------------------------------------
-   The noise-free closed-loop ring (humans = nominal IDM, CAVs = deterministic learned
-   policy + shield) is a discrete-time map z_{k+1} = Phi(z_k) at the control period.
-   We (i) compute its uniform-flow equilibrium z*, (ii) linearise Phi at z* by central
-   finite differences, and (iii) compute the spectral radius of the Jacobian after
-   removing the trivial eigenvalue 1 that corresponds to rigid translation along the
-   ring.  rho(J) < 1  certifies that small perturbations -- i.e. stop-and-go waves --
-   decay exponentially (Lyapunov's indirect method), and its value gives the decay rate.
-   For a human-only ring rho(J) > 1 reproduces the well-known string instability.
-   We also verify that the shield is *inactive* in a neighbourhood of z* (barrier
-   margin h(z*) > 0), so the certificate applies to the shielded system.
-
-2. Statistical verification of STL specifications
-   ------------------------------------------------------------------
-   Exact Clopper-Pearson upper confidence bound on the probability that an episode
-   violates a specification, from n i.i.d. evaluation episodes with k violations.
-"""
 from __future__ import annotations
-
 import copy
 import numpy as np
 from scipy.stats import beta
 
 from .env import RingEnv
 
-
 def clopper_pearson_upper(k: int, n: int, conf: float = 0.95) -> float:
     if k >= n:
         return 1.0
     return float(beta.ppf(conf, k + 1, n - k))
-
 
 class _DetSystem:
     """Deterministic, single-environment copy of the closed loop."""
