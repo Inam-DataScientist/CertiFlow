@@ -1,20 +1,13 @@
-"""Non-learning reference controllers for the CAVs."""
 from __future__ import annotations
-
 import numpy as np
 
-
 class HumanIDM:
-    """CAVs drive like the surrounding humans (noisy IDM) -> 0 % effective penetration."""
     name = "Human (IDM)"
 
     def __call__(self, env):
         return env._hdv_accel()[:, env.cav_idx]
 
-
 class PISaturation:
-    """PI controller with saturation (Stern et al., 2018, Transp. Res. C 89:205-221).
-
     The CAV tracks the running average of its own past speed (a proxy for the
     equilibrium speed), blended with the leader speed when the gap is small.
     """
