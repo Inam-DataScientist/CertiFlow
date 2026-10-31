@@ -1,4 +1,4 @@
-"""Evaluate the domain-randomised (DR) and SUMO fine-tuned (DR-FT) policies in the NumPy ring.
+"""Evaluate the domain-randomised (DR) and SUMO fine-tuned (DR-FT) policies.
 
 Usage:  python evaluate_dr.py
 Expects runs/{PPO-DR,CertiFlow-DR,CertiFlow-DR-FT}_s{0,1,2}/policy.pkl
