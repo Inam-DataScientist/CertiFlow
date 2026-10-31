@@ -1,13 +1,3 @@
-"""LaTeX tables of the paper generated from the result files -> tables/
-
-  tab_main.tex      Table 6   performance comparison on the ring road
-  tab_verif.tex     Table 7   statistical verification of the STL specifications
-  tab_sumo.tex      Table 8   transfer to SUMO
-  tab_ablation.tex  Table 10  ablation study
-
-Bold = best, underline = second best, ranked among methods that were collision-free in that scenario.
-Usage:  python make_tables.py
-"""
 from __future__ import annotations
 
 import os
