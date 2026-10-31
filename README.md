@@ -1,16 +1,18 @@
 # CertiFlow: Certified multi-agent reinforcement learning for safe and stable mixed-autonomy traffic
 
+This repository contains the code, trained policies and raw results.
+
 CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent PPO policy to dissolve stop-and-go waves in human-driven traffic. Three layers of assurance are built in:
 
 1. **STL specifications.** Requirements are written once in Signal Temporal Logic. They define the reward through their quantitative robustness and are checked on test episodes with exact Clopper–Pearson bounds.
-2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Adaptive conformal prediction bounds human accelerations, and the safe action set is an interval computed exactly by bisection.
+2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Human accelerations are bounded by adaptive conformal prediction, and the safe action set is an interval that is computed exactly by bisection.
 3. **Collective-stability certificate.** The spectral radius of the linearised closed-loop traffic map certifies that the shielded traffic system is locally exponentially stable.
 
-The implementation is written in Python with no deep-learning framework dependencies, with SUMO experiments using Eclipse SUMO.
+The implementation is written in NumPy and has no deep-learning framework dependency. The SUMO experiments additionally need Eclipse SUMO.
 
 <p align="center">
   <img src="figures/fig_spacetime.png" width="95%"><br>
-  <em>Space-time diagrams under emergency braking .</em>
+  <em>Space-time diagrams under emergency braking (Fig. 5 of the paper).</em>
 </p>
 
 ## Repository structure
@@ -30,11 +32,12 @@ CertiFlow/
 ├── evaluate.py             baselines, ablations, penetration study, certificates
 ├── evaluate_dr.py          domain-randomised and fine-tuned policies
 ├── evaluate_main.py        full metric set and test-time ablations of the final policy
+├── stats_power.py          paired comparisons, bootstrap CIs and statistical-power analysis
 ├── exp_sweeps.py           human-uncertainty and shield-parameter sweeps
 ├── exp_extra.py            runtime, safe-set phase portrait, SUMO residuals and trajectories
 ├── sumo_eval.py            SUMO ring and highway-merge evaluation (TraCI)
-├── make_tables.py                           -> tables/
-├── make_figures.py         figures         -> figures/
+├── make_tables.py          LaTeX tables of the paper   -> tables/
+├── make_figures.py         figures of the paper        -> figures/
 ├── make_thumbnails.py      inset plots of Fig. 2       -> figures/
 ├── demo.py                 quick check of a trained policy
 ├── tests.py                self-checks
@@ -79,8 +82,8 @@ S2-shift       off          14/20       0.200         4.87    0.000
 S3-emergency   on            0/20       1.104         3.57    0.131
 S3-emergency   off          20/20          --           --    0.000
 
-spectral radius, human-only ring: 1.0108  (unstable)
-spectral radius, CertiFlow     : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
+spectral radius, human-only ring : 1.0108  (unstable)
+spectral radius, CertiFlow       : 0.9763  (certified stable, barrier margin at equilibrium 2.30 m)
 ```
 
 To regenerate every table and figure from the stored results (about one minute):
@@ -89,9 +92,11 @@ To regenerate every table and figure from the stored results (about one minute):
 python make_tables.py && python make_figures.py && python make_thumbnails.py
 ```
 
-## Reproducing
+## Reproducing the paper
 
-**1. Training on the ring** 
+`run_all.sh` runs the complete pipeline in the order below. If SUMO is not available, the script skips the SUMO steps and keeps the stored SUMO results. All evaluations are deterministic given the seeds, so re-running the evaluation scripts with the included policies reproduces the files in `results/` exactly.
+
+**1. Training on the ring** (3–13 min per run on one CPU core)
 
 ```bash
 for s in 0 1 2; do
@@ -114,7 +119,8 @@ for s in 0 1 2; do python sumo_train.py --init CertiFlow-DR --seed $s; done   # 
 ```bash
 python evaluate.py          # results/episodes.csv, summary.csv, certificates.json, traces_S3.npz
 python evaluate_dr.py       # results/episodes_dr_numpy.csv, episodes_s4_ft.csv, certificates_dr.json
-python evaluate_main.py     # results/episodes_main.csv
+python evaluate_main.py     # results/episodes_main.csv (100 episodes per seed and scenario)
+python stats_power.py       # tables/tab_stats.tex, figures/fig_power.pdf, results/stats_power.json
 python exp_sweeps.py        # results/sweep_uncertainty.csv, sweep_sensitivity.csv
 python exp_extra.py phase   # results/phase.npz
 # requires SUMO:
@@ -129,9 +135,9 @@ python exp_extra.py runtime residuals sumo_traces        # results/runtime.json,
 python make_tables.py && python make_figures.py && python make_thumbnails.py
 ```
 
-### Result
+### Where each result comes from
 
-| Figures | Code | Data |
+| Paper | Generated by | Data |
 | --- | --- | --- |
 | Fig. 2 (insets) | `make_thumbnails.py` | `traces_S3.npz` |
 | Fig. 4 | `make_figures.py learning` | `runs/*/log.csv` |
@@ -146,13 +152,13 @@ python make_tables.py && python make_figures.py && python make_thumbnails.py
 | Fig. 14, Fig. 15 | `make_figures.py uncertainty sensitivity` | `sweep_uncertainty.csv`, `sweep_sensitivity.csv` |
 | Fig. 16 | `make_figures.py coverage` | computed from the trained policy |
 
-The values in Table 9 depend on the hardware. The stored `runtime.json` was measured on the workstation described in the draft.
+The values in Table 9 depend on the hardware. The stored `runtime.json` was measured on the workstation described in the paper.
 
 ## Method names
 
-The method names used in the code map to the names in the draft as follows:
+The method names used in the code map to the names in the paper as follows:
 
-| Code | draft |
+| Code | Paper |
 | --- | --- |
 | `Human (IDM)`, `Human (EIDM)` | Human drivers |
 | `PI-Saturation` | PI-Saturation |
@@ -166,7 +172,7 @@ The method names used in the code map to the names in the draft as follows:
 | `CertiFlow-DR-FT` | **CertiFlow (ours)**, the final policy |
 | `Ours w/o shield`, `Ours w/o conformal (nominal CBF)`, ... | test-time ablations vi–ix |
 
-Test scenarios: `S1-nominal`, `S2-shift` (±30 % parameter spread, noise 0.6 m/s²), `S3-emergency` (two 6 m/s² brakes for 3 s at t = 20 s and t = 55 s), `S4-penetration` (1–4 CAVs). Each method is evaluated with three training seeds × 20 test episodes per scenario.
+Test scenarios: `S1-nominal`, `S2-shift` (±30 % parameter spread, noise 0.6 m/s²), `S3-emergency` (two 6 m/s² brakes for 3 s at t = 20 s and t = 55 s), `S4-penetration` (1–4 CAVs). Each method is evaluated with three training seeds × 100 test episodes per scenario (300 per scenario, 900 per method). All methods share the evaluation seeds, so episodes are paired across methods (common random numbers). The original 20-episode results are kept in `results_orig20/`; the S3 trajectory traces used for the space–time and time-series figures are those of the original runs.
 
 ## Trained policies and results
 
@@ -205,3 +211,8 @@ The `results/*.csv` files contain one row per test episode. The columns are:
 | PPO iterations | 300 | ACI rate η | 0.005 |
 | Fine-tuning iterations | 80 | Bisection steps | 25 |
 | Parallel rings / rollout | 16 / 128 | Learning rate | 3 × 10⁻⁴ |
+
+
+## License
+
+Released under the MIT License (see `LICENSE`).
