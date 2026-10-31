@@ -1,0 +1,38 @@
+\begin{table*}[t]
+\caption{Performance comparison on the ring road (2 CAVs out of 22; 3 training seeds $\times$ 100 test episodes = 300 episodes per scenario and method). Coll.: episodes with a collision; Gap$_{\min}$ (m) and TTC$_{\min}$ (s): smallest gap and time-to-collision among all vehicles; Wave (m/s): steady-state speed standard deviation; Speed (m/s); Energy (MJ/km); $|$Jerk$|$ (m/s$^3$): mean absolute CAV jerk; $\varphi_{\mathrm{all}}$: share of episodes satisfying all STL specifications; Interv.: share of steps altered by the shield.}\label{tab:main}
+\centering\footnotesize
+\setlength{\tabcolsep}{4.2pt}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l ccccccccc@{}}
+\toprule
+Method & Coll. & Gap$_{\min}$ & TTC$_{\min}$ & Wave & Speed & Energy & $|$Jerk$|$ & $\varphi_{\mathrm{all}}$ & Interv.\\
+\midrule
+\multicolumn{10}{@{}l}{\textit{S1 nominal}}\\
+\quad Human drivers (IDM) & 0/300 & 3.37 & 5.40 & 1.420 & 4.65 & 0.351 & -- & 0.79 & --\\
+\quad PI-Saturation & 0/300 & 4.16 & 8.54 & 0.125 & \underline{4.79} & 0.272 & 0.85 & \textbf{1.00} & --\\
+\quad PPO & 0/300 & \underline{5.22} & 11.90 & \underline{0.109} & 4.64 & \textbf{0.267} & \underline{0.13} & \textbf{1.00} & --\\
+\quad PPO-DR & \textcolor{red}{28/300} & 3.68 & 7.71 & 0.112 & 4.55 & 0.266 & 0.07 & 0.81 & --\\
+\quad PPO + nominal CBF & 0/300 & 5.13 & \textbf{12.01} & 0.109 & 4.71 & 0.268 & 0.23 & \textbf{1.00} & \underline{0.001}\\
+\quad PPO + our shield (post hoc) & 0/300 & \textbf{5.24} & \underline{11.90} & 0.109 & 4.64 & \underline{0.267} & 0.13 & \textbf{1.00} & \textbf{0.000}\\
+\quad CertiFlow (ours) & 0/300 & 4.06 & 8.96 & \textbf{0.099} & \textbf{4.81} & 0.268 & \textbf{0.05} & \underline{0.98} & 0.011\\
+\addlinespace[2pt]
+\multicolumn{10}{@{}l}{\textit{S2 distribution shift}}\\
+\quad Human drivers (IDM) & 0/300 & 1.68 & 2.31 & 2.459 & 4.17 & 0.593 & -- & 0.12 & --\\
+\quad PI-Saturation & 0/300 & 3.46 & 3.79 & \underline{0.292} & 4.50 & 0.453 & 1.67 & \textbf{0.96} & --\\
+\quad PPO & \textcolor{red}{100/300} & 1.06 & 3.13 & 0.233 & 4.57 & 0.439 & 0.18 & 0.59 & --\\
+\quad PPO-DR & \textcolor{red}{110/300} & 0.83 & 2.96 & 0.249 & 4.31 & 0.437 & 0.14 & 0.56 & --\\
+\quad PPO + nominal CBF & 0/300 & 3.17 & 4.23 & 0.395 & \underline{4.60} & 0.451 & 0.41 & \underline{0.87} & \underline{0.077}\\
+\quad PPO + our shield (post hoc) & 0/300 & \underline{3.48} & \textbf{4.36} & 0.427 & 4.48 & \underline{0.449} & \underline{0.35} & 0.74 & 0.104\\
+\quad CertiFlow (ours) & 0/300 & \textbf{3.50} & \underline{4.27} & \textbf{0.211} & \textbf{4.61} & \textbf{0.442} & \textbf{0.19} & 0.79 & \textbf{0.062}\\
+\addlinespace[2pt]
+\multicolumn{10}{@{}l}{\textit{S3 emergency braking}}\\
+\quad Human drivers (IDM) & 0/300 & 1.58 & \textbf{1.48} & 3.495 & 3.56 & 0.595 & -- & \textbf{0.29} & --\\
+\quad PI-Saturation & 0/300 & 1.62 & \underline{1.23} & 2.400 & \underline{3.71} & 0.465 & 2.47 & \underline{0.01} & --\\
+\quad PPO & \textcolor{red}{300/300} & -4.79 & 0.00 & -- & -- & -- & 0.09 & 0.00 & --\\
+\quad PPO-DR & \textcolor{red}{300/300} & -4.96 & 0.00 & -- & -- & -- & 0.14 & 0.00 & --\\
+\quad PPO + nominal CBF & 0/300 & 1.62 & 1.15 & 2.313 & \textbf{3.76} & 0.416 & 0.49 & 0.00 & 0.327\\
+\quad PPO + our shield (post hoc) & 0/300 & \underline{1.62} & 1.18 & \underline{2.198} & 3.69 & \underline{0.390} & \underline{0.43} & 0.00 & \underline{0.275}\\
+\quad CertiFlow (ours) & 0/300 & \textbf{1.72} & 1.20 & \textbf{1.062} & 3.63 & \textbf{0.319} & \textbf{0.25} & 0.00 & \textbf{0.130}\\
+\bottomrule
+\end{tabular*}
+\par\smallskip\raggedright\scriptsize Note: Bold and underlined values are the best and second-best among methods that were collision-free in that scenario; metrics of colliding methods are computed over their collision-free episodes.
+\end{table*}

@@ -1,0 +1,18 @@
+\begin{table*}[!t]
+\caption{Statistical verification over all 900 test episodes (S1--S3) per method: number of episodes violating each STL specification and, in parentheses, the exact 95\% Clopper--Pearson upper bound on the violation probability (\%).}\label{tab:verif}
+\centering\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}l ccccc@{}}
+\toprule
+Method & $\varphi_{\mathrm{safe}}$ (hard) & $\varphi_{\mathrm{ttc}}$ (soft) & $\varphi_{\mathrm{damp}}$ (soft) & $\varphi_{\mathrm{comf}}$ (soft) & $\varphi_{\mathrm{all}}$ (conj.)\\
+\midrule
+Human drivers (IDM) & \textbf{0 (0.3)} & 213 (26.1) & 396 (46.8) & 26 (4.0) & 541 (62.8)\\
+PI-Saturation & \textbf{0 (0.3)} & 302 (36.2) & 33 (4.9) & \textbf{0 (0.3)} & 310 (37.1)\\
+PPO & 423 (49.8) & 410 (48.3) & 23 (3.6) & \textbf{0 (0.3)} & 423 (49.8)\\
+PPO-DR & 487 (56.9) & 458 (53.7) & 44 (6.2) & \textbf{0 (0.3)} & 487 (56.9)\\
+PPO + nominal CBF & \textbf{0 (0.3)} & 312 (37.4) & 47 (6.6) & 50 (7.0) & 340 (40.5)\\
+PPO + our shield (post hoc) & \textbf{0 (0.3)} & 315 (37.7) & 51 (7.1) & 45 (6.4) & 379 (44.9)\\
+CertiFlow (ours) & \textbf{0 (0.3)} & 300 (36.0) & 8 (1.6) & 91 (11.9) & 367 (43.5)\\
+\bottomrule
+\end{tabular*}
+\par\smallskip\raggedright\scriptsize Note: Hard: enforced at runtime by the shield (Theorem~\ref{thm:det}); soft: monitored and reported, not enforced; conj.: conjunction of all specifications, hence bounded by the soft ones. Bold marks specifications never violated. Almost all $\varphi_{\mathrm{ttc}}$ violations occur in S3, where the 6\,m/s$^2$ brakes create closing speeds that a stopping-distance barrier does not exclude (Section~\ref{sec:lim}).
+\end{table*}
