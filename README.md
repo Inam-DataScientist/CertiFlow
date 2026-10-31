@@ -8,7 +8,7 @@ CertiFlow trains connected autonomous vehicles (CAVs) with a shared multi-agent 
 2. **Conformal cooperative CBF shield.** A discrete-time control barrier function protects each CAV and the human driver behind it. Human accelerations are bounded by adaptive conformal prediction, and the safe action set is an interval that is computed exactly by bisection.
 3. **Collective-stability certificate.** The spectral radius of the linearised closed-loop traffic map certifies that the shielded traffic system is locally exponentially stable.
 
-The implementation is written in NumPy and has no deep-learning framework dependency. The SUMO experiments additionally need Eclipse SUMO.
+The implementation is in Python. The SUMO experiments additionally need Eclipse SUMO.
 
 <p align="center">
   <img src="figures/fig_spacetime.png" width="95%"><br>
