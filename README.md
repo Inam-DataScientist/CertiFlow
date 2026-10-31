@@ -12,7 +12,7 @@ The implementation is written in NumPy and has no deep-learning framework depend
 
 <p align="center">
   <img src="figures/fig_spacetime.png" width="95%"><br>
-  <em>Space-time diagrams under emergency braking (Fig. 5 of the paper).</em>
+  <em>Space-time diagrams under emergency braking
 </p>
 
 ## Repository structure
