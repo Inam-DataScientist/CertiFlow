@@ -1,24 +1,8 @@
-"""Signal Temporal Logic (STL) with quantitative (robustness) semantics.
-
-Implements the Donze-Maler space robustness rho(phi, w, t) for finite traces:
-    rho(mu, w, t)            = f_mu(w(t))
-    rho(not phi, w, t)       = -rho(phi, w, t)
-    rho(phi1 and phi2, w, t) = min(rho1, rho2)
-    rho(G_[a,b] phi, w, t)   = min_{t' in [t+a, t+b]} rho(phi, w, t')
-    rho(F_[a,b] phi, w, t)   = max_{t' in [t+a, t+b]} rho(phi, w, t')
-Windows are truncated at the end of the trace (strong finite-trace semantics for F
-returns -inf when the window is empty).  rho > 0  <=>  the trace satisfies phi.
-
-All operators are vectorised over a leading batch dimension: signals have shape
-(B, T).  Interval bounds are given in *samples*.
-"""
 from __future__ import annotations
-
 import numpy as np
 
-
 class Formula:
-    def rob(self, sig: dict) -> np.ndarray:            # (B, T)
+    def rob(self, sig: dict) -> np.ndarray:            
         raise NotImplementedError
 
     def __and__(self, other):
@@ -30,9 +14,8 @@ class Formula:
     def __invert__(self):
         return Not(self)
 
-    def robustness(self, sig: dict) -> np.ndarray:     # robustness at t = 0, shape (B,)
+    def robustness(self, sig: dict) -> np.ndarray:     
         return self.rob(sig)[:, 0]
-
 
 class Pred(Formula):
     def __init__(self, fn, name="mu"):
@@ -44,7 +27,6 @@ class Pred(Formula):
     def __repr__(self):
         return self.name
 
-
 class Not(Formula):
     def __init__(self, a):
         self.a = a
@@ -54,7 +36,6 @@ class Not(Formula):
 
     def __repr__(self):
         return f"!({self.a})"
-
 
 class And(Formula):
     def __init__(self, *xs):
@@ -66,7 +47,6 @@ class And(Formula):
     def __repr__(self):
         return " & ".join(f"({x})" for x in self.xs)
 
-
 class Or(Formula):
     def __init__(self, *xs):
         self.xs = xs
@@ -76,7 +56,6 @@ class Or(Formula):
 
     def __repr__(self):
         return " | ".join(f"({x})" for x in self.xs)
-
 
 def _window(r, a, b, op, empty):
     """out[t] = op over r[t+a : t+b+1] (truncated); empty windows get `empty`."""
@@ -96,7 +75,6 @@ def _window(r, a, b, op, empty):
         width += step
     out = acc[:, :T]
     return out
-
 
 class Always(Formula):
     def __init__(self, a, interval=(0, None)):
@@ -119,10 +97,6 @@ class Eventually(Formula):
     def __repr__(self):
         return f"F[{self.lo},{self.hi}]({self.a})"
 
-
-# --------------------------------------------------------------------------- #
-# Mixed-traffic specifications used in the paper
-# --------------------------------------------------------------------------- #
 def traffic_specs(dt: float, d_min=1.0, ttc_min=1.5, sigma_star=0.75, t_settle=60.0, t_hold=20.0,
                   harsh=-4.0):
     """Return a dict of named STL specifications over trajectory signals.
