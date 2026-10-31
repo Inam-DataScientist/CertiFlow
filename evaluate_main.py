@@ -14,7 +14,6 @@ LEARNED = {
     "CertiFlow-noCoop": ("CertiFlow-noCoop", "CertiFlow-noCoop"), "CertiFlow-noACI": ("CertiFlow-noACI", "CertiFlow-noACI"),
     "CertiFlow-DR": ("CertiFlow-DR", "CertiFlow"), "CertiFlow-DR-FT": ("CertiFlow-DR-FT", "CertiFlow"),
 }
-# test-time ablations of the final policy: shield kwargs (None = no shield)
 TEST_ABL = {
     "Ours w/o shield": None,
     "Ours w/o conformal (nominal CBF)": dict(conformal=False, cooperative=False, adaptive=False),
@@ -48,7 +47,6 @@ def main():
                         seed=evs)[0], lab)
         print("done", scen, flush=True)
     pd.concat(rows, ignore_index=True).to_csv("results/episodes_main.csv", index=False)
-
 
 if __name__ == "__main__":
     main()
