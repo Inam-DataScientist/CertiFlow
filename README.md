@@ -44,8 +44,8 @@ CertiFlow/
 ├── run_all.sh              full reproduction pipeline
 ├── runs/                   27 trained policies with training logs
 ├── results/                raw per-episode results, certificates and traces
-├── tables/                 generated tables
-└── figures/                generated figures (PDF and PNG)
+├── tables/                 tables
+└── figures/                figures 
 ```
 
 ## Installation
