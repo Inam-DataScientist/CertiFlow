@@ -34,9 +34,9 @@ def load_agent(method, seed, runs="runs", required=False):
 def energy_per_km(v, a, dt):
     """Positive tractive energy [MJ/km] (m=1500 kg, Cr=0.01, rho*CdA=0.84)."""
     P = 1500.0 * v * (a + 9.81 * 0.01) + 0.5 * 1.2 * 0.7 * v ** 3
-    E = np.maximum(P, 0).sum(axis=(0, 2)) * dt                       # J per env
-    D = v.sum(axis=(0, 2)) * dt                                      # m per env
-    return E / np.maximum(D, 1.0) * 1e-3                             # MJ/km
+    E = np.maximum(P, 0).sum(axis=(0, 2)) * dt                       
+    D = v.sum(axis=(0, 2)) * dt                                      
+    return E / np.maximum(D, 1.0) * 1e-3                             
 
 
 def run(cfg, agent=None, controller=None, shield=None, n_envs=20, seed=1000, keep_trace=False):
@@ -80,7 +80,7 @@ def run(cfg, agent=None, controller=None, shield=None, n_envs=20, seed=1000, kee
         "collision": np.isfinite(coll_t),
         "min_gap": sig["gap_min"].min(1),
         "ttc_viol_frac": (sig["ttc_marg"] < 0).mean(1),
-        "std_v_ss": v[half:].std(axis=2).mean(0),                    # steady-state wave amplitude
+        "std_v_ss": v[half:].std(axis=2).mean(0),                    
         "mean_v": v.mean(axis=(0, 2)),
         "energy_MJkm": energy_per_km(v, a, cfg.dt),
         "cav_harsh_frac": ((a[:, :, env.cav_idx] < -4.0).mean(axis=(0, 2)) if env.K else np.zeros(n_envs)),
@@ -93,9 +93,7 @@ def run(cfg, agent=None, controller=None, shield=None, n_envs=20, seed=1000, kee
     trace = (x[:, 0], v[:, 0], a[:, 0]) if keep_trace else None
     return out, trace
 
-
-TRACE_ENVS = 20   # the illustrative S3 trajectories (Figs. 8, 9) are episode 0 of a 20-episode batch
-
+TRACE_ENVS = 20  
 
 def run_with_trace(cfg, keep, n_envs, seed, **kw):
     """Evaluate n_envs episodes; if keep, take the trace from a separate TRACE_ENVS batch (seed-identical)."""
@@ -119,7 +117,6 @@ def main():
         df = df.copy(); df["method"], df["scenario"], df["seed"], df["n_cav"] = method, scen, seed, n_cav
         rows.append(df)
 
-    # ---------------- main comparison (2 CAVs out of 22 = 9 %) ----------------
     for scen, over in SCENARIOS.items():
         for si, seed in enumerate(args.seeds):
             evs = 1000 + 100 * si
@@ -139,7 +136,6 @@ def main():
                 df, tr = run_with_trace(cfg, keep, args.n_envs, evs, agent=ag, shield=make_shield(m, cfg, scores))
                 add(df, m, scen, seed, 2)
                 if tr is not None: traces[(m, scen)] = tr
-            # post-hoc shielding: PPO policy + CertiFlow shield only at deployment
             ag = load_agent("PPO", seed, args.runs)
             if ag is not None:
                 cfg = make_cfg("CertiFlow", base)
